@@ -35,6 +35,7 @@ const InputWithLabel = ({
       type="text"
       name="title"
       className="input input-bordered"
+      required
       {...props}
     />
   </label>
@@ -42,24 +43,44 @@ const InputWithLabel = ({
 const CheckboxWithLabel = ({
   label,
   checked,
+  createdAt,
   onChange,
 }: PropsWithChildren<{
   label: ReactNode;
   checked: boolean;
+  createdAt: number;
   onChange: ChangeEventHandler<HTMLInputElement>;
-}>) => (
-  <div className="form-control">
-    <label className="label cursor-pointer">
-      <input
-        type="checkbox"
-        className="checkbox"
-        checked={checked}
-        onChange={onChange}
-      />
-      <span className="label-text">{label}</span>
-    </label>
-  </div>
-);
+}>) => {
+  const date = (() => {
+    const elapsedTime = Math.trunc(Date.now() / 1000 - createdAt); // sec
+    if (elapsedTime < 60) {
+      return 'たった今';
+    }
+    if (elapsedTime < 60 * 60) {
+      return `${Math.trunc(elapsedTime / 60)}分前`;
+    }
+    if (elapsedTime < 24 * 60 * 60) {
+      return `${Math.trunc(elapsedTime / (60 * 60))}時間前`;
+    }
+  })();
+
+  return (
+    <div className="form-control">
+      <label className="label cursor-pointer">
+        <input
+          type="checkbox"
+          className="checkbox"
+          checked={checked}
+          onChange={onChange}
+        />
+        <span className="label-text">
+          <div className="text-base">{label}</div>
+          <div className="text-xs text-gray-400">{date}</div>
+        </span>
+      </label>
+    </div>
+  );
+};
 const SwitchButton = ({
   checked,
   onToggle,
@@ -102,6 +123,7 @@ const Index = () => {
                   toggleTodo(createdAt, e.target.checked);
                 }}
                 label={done ? <s>{title}</s> : title}
+                createdAt={createdAt}
               />
             </TodoItem>
             <div className="divider my-0" />
@@ -134,16 +156,19 @@ const Index = () => {
         on="過去のTODOを隠す"
         off="過去のTODOを見る"
       />
-      {checked && (
-        <ul>
-          {oldTodo.map(({ title, done, createdAt }) => (
-            <Fragment key={createdAt}>
-              <TodoItem>{done ? <s>{title}</s> : title}</TodoItem>
-              <div className="divider my-0" />
-            </Fragment>
-          ))}
-        </ul>
-      )}
+      {checked &&
+        (oldTodo.length > 0 ? (
+          <ul>
+            {oldTodo.map(({ title, done, createdAt }) => (
+              <Fragment key={createdAt}>
+                <TodoItem>{done ? <s>{title}</s> : title}</TodoItem>
+                <div className="divider my-0" />
+              </Fragment>
+            ))}
+          </ul>
+        ) : (
+          '過去の履歴がありません'
+        ))}
     </div>
   );
 };
