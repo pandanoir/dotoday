@@ -4,13 +4,23 @@ import { Todo } from './Todo';
 
 export const useTodaysTodo = () => {
   const [todo, setTodo] = useState<Todo[]>([]);
+
   const hasInitialized = useRef(false);
   const [visitedAt, setVisitedAt] = useState(0); // sec
   useEffect(() => {
     if (hasInitialized.current) {
       return;
     }
-    hasInitialized.current = true;
+    const data = localStorage.getItem(withPrefix`todo-items`);
+    if (!data) {
+      return;
+    }
+    setTodo(JSON.parse(data));
+  }, []);
+  useEffect(() => {
+    if (hasInitialized.current) {
+      return;
+    }
     setVisitedAt(Date.now() / 1000);
 
     const todo = localStorage.getItem(withPrefix`todo`);
@@ -19,6 +29,12 @@ export const useTodaysTodo = () => {
     }
     setTodo(JSON.parse(todo));
   }, []);
+  useEffect(() => {
+    hasInitialized.current = true;
+  });
+  useEffect(() => {
+    localStorage.setItem(withPrefix`todo-items`, JSON.stringify(todo));
+  }, [todo]);
 
   const todaysTodo = useMemo(
     () =>
